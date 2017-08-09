@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import re
 import sys
-
 import tweepy  # https://github.com/tweepy/tweepy
+from nltk.corpus import stopwords
 
 # Twitter API credentials
 consumer_key = "x1ZcTUl6KV6lxKkgcb51j91lI"
@@ -49,11 +50,11 @@ def get_all_tweets(screen_name):
     #outtweets = [[tweet.id_str, tweet.created_at, tweet.text] for tweet in alltweets]
 
 
-    #for tweet in alltweets:
+        # for tweet in alltweets:
     f = open('testfile.txt', 'w+')
-    #x = f.read()
-    #y = x
-    #print(y)
+    # x = f.read()
+    # y = x
+    # print(y)
     for tweet in alltweets:
         f.write(str(tweet.text))
         f.write('\n')
@@ -61,14 +62,34 @@ def get_all_tweets(screen_name):
     tweets = (tweet.text)
     return tweets
     pass
+
 # to encode the data
 reload(sys)
 sys.setdefaultencoding('utf-8')
-
-#word_tokenize accepts a string as an input, not a file.
 if __name__ == '__main__':
-	#pass in the username of the account you want to download
+    # pass in the username of the account you want to download
     get_all_tweets("tusharkute")
 
 
-
+# stop word preprocessing
+stop_words = set(stopwords.words('english'))
+file1 = open("testfile.txt",'r')
+line = file1.read()# Use this to read file content as a stream:
+words = line.split()
+with open('filteredtext.txt','w') as f:
+    f.write(' ')
+    f.close()
+for r in words:
+    if not r in stop_words:
+        appendFile = open('filteredtext.txt','a')
+        appendFile.write(" "+r)
+        #appendFile.write('\n')
+        appendFile.close()
+with open('filteredtext.txt','r')as f1:
+    line = f1.read()
+    #print type(line)
+    result = re.sub(r"http\S+", "", line)
+    with open('result.txt','w')as f2:
+        f2.write(result)
+        f2.write('\n')
+        f2.close()
