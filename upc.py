@@ -4,6 +4,8 @@ import re
 import sys
 import tweepy  # https://github.com/tweepy/tweepy
 from nltk.corpus import stopwords
+import textmining
+import glob
 
 # Twitter API credentials
 consumer_key = "x1ZcTUl6KV6lxKkgcb51j91lI"
@@ -92,3 +94,14 @@ with open('filteredtext.txt','r')as f1:
     with open('result.txt','w')as f2:
         f2.write(result)
         f2.close()
+
+#Document term Frequency matrix
+
+tdm = textmining.TermDocumentMatrix()
+
+files = glob.glob("result.txt")
+for f in files:
+    content = open(f).read()
+    content = content.replace('\n', ' \n')
+    tdm.add_doc(content)
+    tdm.write_csv('matrix1.csv', cutoff=1)
