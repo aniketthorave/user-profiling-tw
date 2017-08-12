@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
-import re
+import codecs
 import sys
+
+import gensim
 import tweepy  # https://github.com/tweepy/tweepy
-from nltk.corpus import stopwords
+from gensim import corpora
+from nltk.stem.porter import PorterStemmer
+from nltk.tokenize import RegexpTokenizer
+from stop_words import get_stop_words
 
 # Twitter API credentials
 consumer_key = "x1ZcTUl6KV6lxKkgcb51j91lI"
@@ -51,7 +56,7 @@ def get_all_tweets(screen_name):
 
 
         # for tweet in alltweets:
-    f = open('testfile.txt', 'w+')
+    f = codecs.open('testfile.txt', 'w+',encoding='utf-8',errors='ignore')
     # x = f.read()
     # y = x
     # print(y)
@@ -68,28 +73,53 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 if __name__ == '__main__':
     # pass in the username of the account you want to download
-    get_all_tweets("tusharkute")
+    get_all_tweets("tejasprawal")
 
+#stopped_tokens = unicode(str, errors='replace')
 
-# stop word preprocessing
-stop_words = set(stopwords.words('english'))
-file1 = open("testfile.txt",'r')
+tokenizer = RegexpTokenizer(r'\w+')
+file1 = codecs.open("testfile.txt",'r',encoding='utf-8',errors='ignore')
 line = file1.read()# Use this to read file content as a stream:
-words = line.split()
-with open('filteredtext.txt','w') as f:
-    f.write(' ')
-    f.close()
-for r in words:
-    if not r in stop_words:
-        appendFile = open('filteredtext.txt','a')
-        appendFile.write(" "+r)
-        #appendFile.write('\n')
-        appendFile.close()
-with open('filteredtext.txt','r')as f1:
-    line = f1.read()
-    #print type(line)
-    result = re.sub(r"http\S+", "", line)
-    with open('result.txt','w')as f2:
-        f2.write(result)
-        f2.write('\n')
-        f2.close()
+raw = line.lower()
+tokens = tokenizer.tokenize(raw)
+print(tokens)
+
+#preprocessing on words
+
+texts = []
+
+en_stop = get_stop_words('en')
+stopped_tokens = [i for i in tokens if not i in en_stop]
+print stopped_tokens
+
+p_stemmer = PorterStemmer()
+for i in line:
+    # clean and tokenize document string
+    raw = i.lower()
+    tokens = tokenizer.tokenize(raw)
+
+    # remove stop words from tokens
+    stopped_tokens = [i for i in tokens if not i in en_stop]
+
+    # stem tokens
+    stemmed_tokens = [p_stemmer.stem(i) for i in stopped_tokens]
+
+    # add tokens to list
+    texts.append(stemmed_tokens)
+
+# turn our tokenized documents into a id <-> term dictionary
+dictionary = corpora.Dictionary(texts)
+
+# convert tokenized documents into a document-term matrix
+corpus = [dictionary.doc2bow(text) for text in texts]
+file3=open('DTFM.txt','w')
+file3.write(str(corpus))
+file3.close()
+#print corpus
+# generate LDA model
+ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=2, id2word=dictionary, passes=20)
+file4=open('LDA.txt','w')
+file4.write(str(ldamodel))
+file4.close()
+#print ldamodel
+exit(0)
