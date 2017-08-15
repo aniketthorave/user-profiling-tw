@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 # encoding: utf-8
+import string
 import sys
 
+import gensim
 import tweepy  # https://github.com/tweepy/tweepy
-
+from gensim import corpora
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
 # Twitter API credentials
 consumer_key = "x1ZcTUl6KV6lxKkgcb51j91lI"
 consumer_secret = "VFXPt4Gk6EwX4KbomR1HIAd9ObHjiWi5yMk5zyHbmjDPX07nMA"
@@ -30,7 +34,6 @@ def get_all_tweets(screen_name):
     # save the id of the oldest tweet less one
     oldest = alltweets[-1].id - 1
 
-    #q = '#MentionSomeoneImportantForYou'
 
     # keep grabbing tweets until there are no tweets left to grab
     while len(new_tweets) > 0:
@@ -43,8 +46,6 @@ def get_all_tweets(screen_name):
 
         alltweets.extend(new_tweets)
 
-
-
         # update the id of the oldest tweet less one
         oldest = alltweets[-1].id - 1
 
@@ -53,19 +54,53 @@ def get_all_tweets(screen_name):
     # transform the tweepy tweets into a 2D array that will populate the csv
         outtweets = [tweet.text for tweet in alltweets]
         #print outtweets
-        f=open('testfile.txt','w')
-        f.write(str(outtweets))
-        f.close()
-
+        #f=open('testfile.txt','w')
+        #f.write(str(outtweets))
+        #f.close()
+    return outtweets
     pass
 # to encode the data
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-#word_tokenize accepts a string as an input, not a file.
-if __name__ == '__main__':
-	#pass in the username of the account you want to download
-    get_all_tweets("tusharkute")
+#pass in the username of the account you want to download
+
+doc_complete=get_all_tweets('tejasprawal')
+
+
+#Cleaning and Preprocessing
+
+stop = set(stopwords.words('english'))
+exclude = set(string.punctuation)
+lemma = WordNetLemmatizer()
+
+def clean(doc):
+    stop_free = " ".join([i for i in doc.lower().split() if i not in stop])
+    punc_free = ''.join(ch for ch in stop_free if ch not in exclude)
+    normalized = " ".join(lemma.lemmatize(word) for word in punc_free.split())
+    #print normalized
+    return normalized
 
 
 
+doc_clean = [clean(doc).split() for doc in doc_complete]
+#print doc_clean
+
+#Preparing Document-Term Matrix
+# Creating the term dictionary of our courpus, where every unique term is assigned an index. dictionary = corpora.Dictionary(doc_clean)
+dictionary = corpora.Dictionary(doc_clean)
+
+# Converting list of documents (corpus) into Document Term Matrix using dictionary prepared above.
+doc_term_matrix = [dictionary.doc2bow(doc) for doc in doc_clean]
+file3=open('DTFM.txt','w')
+file3.write(str(doc_term_matrix))
+file3.close()
+
+
+# Creating the object for LDA model using gensim library
+Lda = gensim.models.ldamodel.LdaModel
+
+# Running and Trainign LDA model on the document term matrix.
+ldamodel = Lda(doc_term_matrix, num_topics=5, id2word = dictionary, passes=50)
+#ldamodel.show_topic()
+print(ldamodel.print_topics(num_topics=5, num_words=3))

@@ -45,6 +45,7 @@ def get_all_tweets(screen_name):
 
         # save most recent tweets
         alltweets.extend(new_tweets)
+        print len(alltweets)
 
         # update the id of the oldest tweet less one
         oldest = alltweets[-1].id - 1
@@ -82,6 +83,7 @@ file1 = codecs.open("testfile.txt",'r',encoding='utf-8',errors='ignore')
 line = file1.read()# Use this to read file content as a stream:
 raw = line.lower()
 tokens = tokenizer.tokenize(raw)
+
 print(tokens)
 
 #preprocessing on words
@@ -112,12 +114,13 @@ dictionary = corpora.Dictionary(texts)
 
 # convert tokenized documents into a document-term matrix
 corpus = [dictionary.doc2bow(text) for text in texts]
-file3=open('DTFM.txt','w')
-file3.write(str(corpus))
-file3.close()
+#file3=open('DTFM.txt','w')
+#file3.write(str(corpus))
+#file3.close()
 #print corpus
 # generate LDA model
-ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=2, id2word=dictionary, passes=20)
+ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=100)
+ldamodel.show_topics(5)
 file4=open('LDA.txt','w')
 file4.write(str(ldamodel))
 file4.close()
