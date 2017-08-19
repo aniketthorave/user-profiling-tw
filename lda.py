@@ -8,6 +8,7 @@ import tweepy  # https://github.com/tweepy/tweepy
 from gensim import corpora
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
+import numpy as np
 # Twitter API credentials
 consumer_key = "x1ZcTUl6KV6lxKkgcb51j91lI"
 consumer_secret = "VFXPt4Gk6EwX4KbomR1HIAd9ObHjiWi5yMk5zyHbmjDPX07nMA"
@@ -100,7 +101,31 @@ file3.close()
 # Creating the object for LDA model using gensim library
 Lda = gensim.models.ldamodel.LdaModel
 
+SOME_FIXED_SEED = 42
+
+# before training/inference:
+np.random.seed(SOME_FIXED_SEED)
+
 # Running and Trainign LDA model on the document term matrix.
-ldamodel = Lda(doc_term_matrix, num_topics=5, id2word = dictionary, passes=50)
-#ldamodel.show_topic()
-print(ldamodel.print_topics(num_topics=5, num_words=3))
+ldamodel = Lda(doc_term_matrix, num_topics=3, id2word = dictionary, passes=50)
+
+
+lda=ldamodel.print_topics(num_topics=3, num_words=3)
+#type(ldamodel)
+f=open('LDA.txt','w')
+f.write(str(lda))
+f.close()
+
+#for the full words distributions for each topic and all topics in your lda model.
+#for i in ldamodel.show_topics(formatted=False,num_topics=ldamodel.num_topics,num_words=len(ldamodel.id2word)):
+    #print i
+
+
+#topics_matrix = ldamodel.get_topic_terms(topicid=0, topn=10)
+#topics_matrix = np.array((topics_matrix),dtype=list)
+#print topics_matrix
+#'''topic_words = []
+#for i in range(3):
+#    tt = ldamodel.get_topic_terms(i,10)
+#    topic_words.append([pair[0] for pair in tt])
+#print topic_words'''
