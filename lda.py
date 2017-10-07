@@ -84,7 +84,9 @@ def clean(doc):
 
 
 
-doc_clean = [clean(doc).split() for doc in doc_complete]
+doc_clean_l = [clean(doc).split() for doc in doc_complete]
+doc_clean = doc_clean_l[:20]
+
 #print doc_clean
 
 #Preparing Document-Term Matrix
@@ -116,16 +118,11 @@ f=open('LDA.txt','w')
 f.write(str(lda))
 f.close()
 
+sys1 =[]
 #for the full words distributions for each topic and all topics in your lda model.
-#for i in ldamodel.show_topics(formatted=False,num_topics=ldamodel.num_topics,num_words=len(ldamodel.id2word)):
-    #print i
-
-
-#topics_matrix = ldamodel.get_topic_terms(topicid=0, topn=10)
-#topics_matrix = np.array((topics_matrix),dtype=list)
-#print topics_matrix
-#'''topic_words = []
-#for i in range(3):
-#    tt = ldamodel.get_topic_terms(i,10)
-#    topic_words.append([pair[0] for pair in tt])
-#print topic_words'''
+for i in ldamodel.show_topics(formatted=False,num_topics=ldamodel.num_topics,num_words=len(ldamodel.id2word)):
+    sys1.append(i)
+f2=open('num_words.txt','w')
+f2.write(str(sys1))
+f2.close()
+    # print i

@@ -70,7 +70,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 if __name__ == '__main__':
     # pass in the username of the account you want to download
-    get_all_tweets("tusharkute")
+    get_all_tweets("tejasprawal")
 
 
 # stop word preprocessing

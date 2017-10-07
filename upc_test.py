@@ -1,128 +1,106 @@
-#!/usr/bin/env python
-# encoding: utf-8
-import codecs
-import sys
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Jan 17 19:17:08 2014
+@author: mit
+"""
 
-import gensim
-import tweepy  # https://github.com/tweepy/tweepy
-from gensim import corpora
-from nltk.stem.porter import PorterStemmer
-from nltk.tokenize import RegexpTokenizer
-from stop_words import get_stop_words
+"""
+This script implements gibbs sampling to find motif in DNA sequence. The sampler
+works with no information about probability distribution of character in the sequence.
+"""
 
-# Twitter API credentials
-consumer_key = "x1ZcTUl6KV6lxKkgcb51j91lI"
-consumer_secret = "VFXPt4Gk6EwX4KbomR1HIAd9ObHjiWi5yMk5zyHbmjDPX07nMA"
-access_key = "865138923282018304-VUvrEYMlCQRtRNX6OJYIFmZDTzRB5Yw"
-access_secret = "QFYPrNqppR9gs2oWsVabv3TJpQPY6K5RcvyT2u4jih9Cg"
+from numpy.random import randint
+from sampling import sample
 
-def get_all_tweets(screen_name):
-    # Twitter only allows access to a users most recent 3240 tweets with this method
+# Read data from file
+#filename = 'DTFM.txt'
+f = open('result.txt', 'r')
 
-    # authorize twitter, initialize tweepy
-    auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_key, access_secret)
-    api = tweepy.API(auth)
+K = int(f.readline())
+N = int(f.readline())
+w = int(f.readline())
+alphabet = list(f.readline()[:-1])
+alpha_b = f.readline()  # Not too important
+alpha_w = f.readline()  # Not too important
 
-    # initialize a list to hold all the tweepy Tweets
-    alltweets = []
+sequences = []
+for i in xrange(K):
+    seq = f.readline()[:-1].split(',')
+    sequences += [seq]
 
-    # make initial request for most recent tweets (200 is the maximum allowed count)
-    new_tweets = api.user_timeline(screen_name=screen_name,count=200)
-
-    # save most recent tweets
-    alltweets.extend(new_tweets)
-
-    # save the id of the oldest tweet less one
-    oldest = alltweets[-1].id - 1
-
-    # keep grabbing tweets until there are no tweets left to grab
-    while len(new_tweets) > 0:
-        print "getting tweets before %s" % (oldest)
-
-        # all subsiquent requests use the max_id param to prevent duplicates
-        new_tweets = api.user_timeline(screen_name=screen_name, count=200, max_id=oldest)
-
-        # save most recent tweets
-        alltweets.extend(new_tweets)
-        print len(alltweets)
-
-        # update the id of the oldest tweet less one
-        oldest = alltweets[-1].id - 1
-
-        print "...%s tweets downloaded so far" % (len(alltweets))
-
-    # transform the tweepy tweets into a 2D array that will populate the csv
-    #outtweets = [[tweet.id_str, tweet.created_at, tweet.text] for tweet in alltweets]
+position = map(int, f.readline()[:-1].split(','))
+f.close()
 
 
-        # for tweet in alltweets:
-    f = codecs.open('testfile.txt', 'w+',encoding='utf-8',errors='ignore')
-    # x = f.read()
-    # y = x
-    # print(y)
-    for tweet in alltweets:
-        f.write(str(tweet.text))
-        f.write('\n')
-    f.close()
-    tweets = (tweet.text)
-    return tweets
-    pass
+def compute_model(sequences, pos, alphabet, w):
+    """
+    This method compute the probability model of background and word based on data in
+    the sequences.
+    """
+    q = {x: [1] * w for x in alphabet}
+    p = {x: 1 for x in alphabet}
 
-# to encode the data
-reload(sys)
-sys.setdefaultencoding('utf-8')
-if __name__ == '__main__':
-    # pass in the username of the account you want to download
-    get_all_tweets("tejasprawal")
+    # Count the number of character occurrence in the particular position of word
+    for i in xrange(len(sequences)):
+        start_pos = pos[i]
+        for j in xrange(w):
+            c = sequences[i][start_pos + j]
+            q[c][j] += 1
+    # Normalize the count
+    for c in alphabet:
+        for j in xrange(w):
+            q[c][j] = q[c][j] / float(K + len(alphabet))
 
-#stopped_tokens = unicode(str, errors='replace')
+    # Count the number of character occurrence in background position
+    # which mean everywhere except in the word position
+    for i in xrange(len(sequences)):
+        for j in xrange(len(sequences[i])):
+            if j < pos[i] or j > pos[i] + w:
+                c = sequences[i][j]
+                p[c] += 1
+    # Normalize the count
+    total = sum(p.values())
+    for c in alphabet:
+        p[c] = p[c] / float(total)
 
-tokenizer = RegexpTokenizer(r'\w+')
-file1 = codecs.open("testfile.txt",'r',encoding='utf-8',errors='ignore')
-line = file1.read()# Use this to read file content as a stream:
-raw = line.lower()
-tokens = tokenizer.tokenize(raw)
+    return q, p
 
-print(tokens)
 
-#preprocessing on words
+# First, initialize the state (in this case position) randomly
+pos = [randint(0, N - w + 1) for x in xrange(K)]
 
-texts = []
+# Loop until converge (the burn-in phase)
+MAX_ITER = 10
+for it in xrange(MAX_ITER):
+    # We pick the sequence, well, in sequence starting from index 0
+    for i in xrange(K):
+        # We sample the next position of magic word in this sequence
+        # Therefore, we exclude this sequence from model calculation
+        seq_minus = sequences[:];
+        del seq_minus[i]
+        pos_minus = pos[:];
+        del pos_minus[i]
+        q, p = compute_model(seq_minus, pos_minus, alphabet, w)
 
-en_stop = get_stop_words('en')
-stopped_tokens = [i for i in tokens if not i in en_stop]
-print stopped_tokens
+        # We try for every possible position of magic word in sequence i and
+        # calculate the probability of it being as background or magic word
+        # The probability for magic word is calculated by multiplying the probability
+        # for each character in each position
+        qx = [1] * (N - w)
+        px = [1] * (N - w)
+        for j in xrange(N - w):
+            for k in xrange(w):
+                c = sequences[i][j + k]
+                qx[j] = qx[j] * q[c][k]
+                px[j] = px[j] * p[c]
 
-p_stemmer = PorterStemmer()
-for i in line:
-    # clean and tokenize document string
-    raw = i.lower()
-    tokens = tokenizer.tokenize(raw)
+        # Compute the ratio between word and background, the pythonic way
+        Aj = [x / y for (x, y) in zip(qx, px)]
+        norm_c = sum(Aj)
+        Aj = map(lambda x: x / norm_c, Aj)
 
-    # remove stop words from tokens
-    stopped_tokens = [i for i in tokens if not i in en_stop]
+        # Sampling new position with regards to probability distribution Aj
+        pos[i] = sample(range(N - w), Aj)
 
-    # stem tokens
-    stemmed_tokens = [p_stemmer.stem(i) for i in stopped_tokens]
-
-    # add tokens to list
-    texts.append(stemmed_tokens)
-
-# turn our tokenized documents into a id <-> term dictionary
-dictionary = corpora.Dictionary(texts)
-
-# convert tokenized documents into a document-term matrix
-corpus = [dictionary.doc2bow(text) for text in texts]
-#file3=open('DTFM.txt','w')
-#file3.write(str(corpus))
-#file3.close()
-#print corpus
-# generate LDA model
-ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=100)
-ldamodel.show_topics(5)
-file4=open('LDA.txt','w')
-file4.write(str(ldamodel))
-file4.close()
-#print ldamodel
-exit(0)
+# Happy printing
+print 'new pos', pos
