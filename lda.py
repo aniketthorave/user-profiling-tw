@@ -126,3 +126,8 @@ f2=open('num_words.txt','w')
 f2.write(str(sys1))
 f2.close()
     # print i
+
+topicid = input("\n enter topic id: ")
+topn = input("\n enter top n words: ")
+for i in ldamodel.show_topic(topicid,topn):
+    print i
