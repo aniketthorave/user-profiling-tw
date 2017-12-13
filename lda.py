@@ -112,11 +112,28 @@ np.random.seed(SOME_FIXED_SEED)
 ldamodel = Lda(doc_term_matrix, num_topics=3, id2word = dictionary, passes=50)
 
 
-lda=ldamodel.print_topics(num_topics=3, num_words=3)
+lda=ldamodel.print_topics(num_topics=3, num_words=10)
 #type(ldamodel)
 f=open('LDA.txt','w')
 f.write(str(lda))
 f.close()
+
+#to convert list of tuple into column
+# When reading your file, call ast.literal_eval.
+import ast
+with open('LDA.txt') as f:
+    data = ast.literal_eval(f.read())
+
+import re
+import pandas as pd
+d = {}
+for i, y in data:
+    d['topic {}'.format(i)] = re.findall('"(.*?)"', y)
+df = pd.DataFrame(d)
+df.to_csv('column.csv')
+
+
+
 
 sys1 =[]
 #for the full words distributions for each topic and all topics in your lda model.
@@ -127,6 +144,7 @@ f2.write(str(sys1))
 f2.close()
     # print i
 
+#top n topic
 topicid = input("\n enter topic id: ")
 topn = input("\n enter top n words: ")
 for i in ldamodel.show_topic(topicid,topn):
