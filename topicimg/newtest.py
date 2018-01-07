@@ -64,7 +64,7 @@ sys.setdefaultencoding('utf-8')
 
 #pass in the username of the account you want to download
 
-doc_complete=get_all_tweets('@imVkohli')
+doc_complete=get_all_tweets('tusharkute')
 documents = doc_complete[:10]
 #print documents
 f=open('tweet.txt','w')
