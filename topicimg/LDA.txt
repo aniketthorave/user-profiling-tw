@@ -1,0 +1,3 @@
+(0, u'0.146*"pune" + 0.145*"maharashtra" + 0.144*"nature" + 0.144*"it" + 0.084*"sunrise" + 0.083*"morning" + 0.074*"best" + 0.039*"nashik" + 0.025*"department" + 0.025*"information"')
+(1, u'0.151*"morning" + 0.146*"nature" + 0.115*"pune" + 0.115*"beauty" + 0.083*"baner" + 0.083*"temple" + 0.078*"sunrise" + 0.070*"shadow" + 0.051*"best" + 0.049*"maharashtra"')
+(2, u'0.284*"nashik" + 0.161*"information" + 0.160*"department" + 0.053*"nature" + 0.053*"shadow" + 0.040*"pune" + 0.039*"morning" + 0.039*"sunrise" + 0.035*"beauty" + 0.031*"best"')

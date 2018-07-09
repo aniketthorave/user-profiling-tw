@@ -2,12 +2,12 @@
 # encoding: utf-8
 import string
 import sys
-from gensim import corpora, models, similarities
+from gensim import corpora, models
 from itertools import chain
 import gensim.models.ldamulticore
 import tweepy  # https://github.com/tweepy/tweepy
-from gensim import corpora
-from gensim.models import LdaMulticore, ldamodel
+#from gensim import corpora
+from gensim.models import LdaMulticore
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
 import numpy as np
