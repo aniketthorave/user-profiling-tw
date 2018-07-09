@@ -20,10 +20,10 @@ import ast
 from nltk.corpus import stopwords
 from nltk.tokenize import TweetTokenizer
 # Twitter API credentials
-consumer_key = "x1ZcTUl6KV6lxKkgcb51j91lI"
-consumer_secret = "VFXPt4Gk6EwX4KbomR1HIAd9ObHjiWi5yMk5zyHbmjDPX07nMA"
-access_key = "865138923282018304-VUvrEYMlCQRtRNX6OJYIFmZDTzRB5Yw"
-access_secret = "QFYPrNqppR9gs2oWsVabv3TJpQPY6K5RcvyT2u4jih9Cg"
+consumer_key = "Enter your consumer_key"
+consumer_secret = "Enter your Consumer_secret"
+access_key = "Enter your access_key"
+access_secret = "Enter access_secret"
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
